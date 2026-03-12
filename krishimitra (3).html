@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KrishiMitra – Farmer's Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Nunito:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --forest: #1a3a1e;
+  --leaf:   #2d6a2f;
+  --lime:   #6abf4b;
+  --gold:   #f0a500;
+  --sky:    #e6f4ea;
+  --cream:  #fdfcf7;
+  --bark:   #3b2408;
+  --fog:    #f2f5f0;
+  --ink:    #1c1c1c;
+  --muted:  #6e7d6a;
+  --white:  #ffffff;
+  --red:    #e53935;
+  --blue:   #1565c0;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);}
+.font-display{font-family:'Syne',sans-serif;}
+
+/* ─── SCREEN MANAGER ─────────────────────── */
+.screen{display:none;width:100%;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* ─── LOGIN ──────────────────────────────── */
+#s-login{
+  align-items:center;justify-content:center;
+  background:linear-gradient(145deg,#0d2210 0%,#1a3a1e 40%,#2d6a2f 100%);
+  position:relative;overflow:hidden;
+}
+#s-login::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle at 20% 80%,rgba(106,191,75,.15) 0%,transparent 50%),
+                   radial-gradient(circle at 80% 20%,rgba(240,165,0,.1) 0%,transparent 50%);
+}
+.login-card{
+  position:relative;z-index:1;background:var(--white);
+  border-radius:28px;padding:52px 44px;width:100%;max-width:420px;
+  box-shadow:0 40px 100px rgba(0,0,0,.35);
+  animation:riseIn .6s cubic-bezier(.16,1,.3,1);
+}
+@keyframes riseIn{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.login-logo{display:flex;align-items:center;gap:14px;margin-bottom:36px;}
+.login-logo-box{
+  width:56px;height:56px;background:linear-gradient(135deg,var(--leaf),var(--lime));
+  border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;
+  box-shadow:0 8px 20px rgba(45,106,47,.4);
+}
+.login-logo h1{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--bark);line-height:1;}
+.login-logo p{font-size:12px;color:var(--muted);margin-top:3px;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
+.field input{
+  width:100%;padding:13px 16px;border:1.5px solid #e2e8e0;border-radius:12px;
+  font-family:inherit;font-size:15px;color:var(--ink);background:#fafbf9;
+  transition:border .2s,box-shadow .2s;
+}
+.field input:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px rgba(45,106,47,.12);}
+.login-btn{
+  width:100%;margin-top:8px;padding:15px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--leaf),var(--lime));color:var(--white);
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.4px;
+  box-shadow:0 6px 20px rgba(45,106,47,.4);transition:transform .15s,box-shadow .15s;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(45,106,47,.5);}
+.hint{margin-top:18px;text-align:center;font-size:12px;color:var(--muted);}
+.hint b{color:var(--leaf);}
+.err-msg{background:#ffeaea;border:1px solid #ffcdd2;color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;margin-top:12px;display:none;}
+.err-msg.show{display:block;}
+
+/* ─── APP SHELL ──────────────────────────── */
+#s-app{flex-direction:row;}
+
+/* ─── SIDEBAR ────────────────────────────── */
+aside{
+  width:232px;min-height:100vh;height:100vh;
+  background:var(--forest);display:flex;flex-direction:column;
+  position:sticky;top:0;flex-shrink:0;
+}
+.sb-brand{padding:28px 22px 24px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sb-icon{font-size:30px;margin-bottom:8px;}
+.sb-brand h2{font-family:'Syne',sans-serif;color:var(--white);font-size:19px;font-weight:800;}
+.sb-brand p{font-size:11px;color:rgba(255,255,255,.38);margin-top:2px;}
+.sb-user{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.sb-avatar{
+  width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--leaf),var(--lime));
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--white);
+}
+.sb-uname{font-size:12px;color:rgba(255,255,255,.6);}
+.sb-role{font-size:10px;color:var(--lime);text-transform:capitalize;margin-top:1px;}
+nav{padding:16px 10px;flex:1;overflow-y:auto;}
+.nav-link{
+  display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border-radius:12px;color:rgba(255,255,255,.55);font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:all .18s;margin-bottom:3px;border:none;background:none;width:100%;text-align:left;
+}
+.nav-link:hover{background:rgba(255,255,255,.07);color:var(--white);}
+.nav-link.active{background:linear-gradient(135deg,var(--leaf),rgba(45,106,47,.8));color:var(--white);box-shadow:0 4px 12px rgba(0,0,0,.25);}
+.nav-link .ni{font-size:17px;width:22px;text-align:center;}
+.sb-footer{padding:14px 10px 20px;}
+.logout-btn{
+  width:100%;padding:10px;background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.25);
+  color:#ef9a9a;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;transition:all .18s;
+}
+.logout-btn:hover{background:rgba(229,57,53,.22);}
+
+/* ─── MAIN ───────────────────────────────── */
+main{flex:1;background:var(--fog);overflow-y:auto;min-height:100vh;}
+.page{display:none;padding:36px 38px;animation:fadeSlide .3s ease;}
+.page.active{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(6px);}to{opacity:1;transform:translateX(0);}}
+.ph{margin-bottom:28px;}
+.ph h2{font-family:'Syne',sans-serif;font-size:25px;font-weight:800;color:var(--bark);}
+.ph p{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* ─── COMPONENTS ─────────────────────────── */
+.card{background:var(--white);border-radius:18px;padding:24px;box-shadow:0 2px 16px rgba(0,0,0,.06);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border:none;border-radius:11px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .18s;}
+.btn-g{background:var(--leaf);color:var(--white);}
+.btn-g:hover{background:#245c26;transform:translateY(-1px);}
+.btn-s{background:var(--sky);color:var(--leaf);}
+.btn-s:hover{background:#d0e8d2;}
+.btn-r{background:#ffebee;color:var(--red);}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.b-green{background:#e8f5e9;color:#2e7d32;}
+.b-amber{background:#fff8e1;color:#f57f17;}
+.b-red{background:#ffebee;color:#c62828;}
+.b-blue{background:#e3f2fd;color:#1565c0;}
+input,select,textarea{font-family:inherit;}
+
+/* ─── DASHBOARD ──────────────────────────── */
+.weather-card{
+  background:linear-gradient(135deg,#1565c0,#0288d1);border-radius:20px;
+  padding:26px 30px;color:var(--white);display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;box-shadow:0 8px 24px rgba(21,101,192,.3);
+}
+.wc-temp{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;line-height:1;}
+.wc-icon{font-size:80px;opacity:.82;}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
+.stat-box{background:var(--white);border-radius:16px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.05);border-left:4px solid var(--lime);}
+.stat-box .sl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600;}
+.stat-box .sv{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--bark);margin-top:6px;}
+.stat-box .ss{font-size:11px;color:var(--leaf);margin-top:3px;}
+.crop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:14px;}
+.crop-card{
+  background:var(--white);border-radius:16px;padding:20px;
+  box-shadow:0 2px 12px rgba(0,0,0,.05);border-top:4px solid var(--lime);
+  transition:transform .2s,box-shadow .2s;cursor:default;
+}
+.crop-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1);}
+.cc-icon{font-size:34px;margin-bottom:10px;}
+.cc-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bark);}
+.cc-detail{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+.cc-profit{font-size:13px;color:var(--leaf);font-weight:700;margin-top:8px;}
+.ai-pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(90deg,#7b1fa2,#e91e63);color:var(--white);padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.4px;margin-bottom:14px;}
+
+/* ─── MARKETPLACE ────────────────────────── */
+.listing{
+  background:var(--white);border-radius:16px;padding:20px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:10px;
+  transition:transform .15s;
+}
+.listing:hover{transform:translateX(4px);}
+.l-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bark);}
+.l-sub{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid .full{grid-column:1/-1;}
+.fl{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.fi{
+  width:100%;padding:11px 14px;border:1.5px solid #dde5d8;border-radius:11px;
+  font-size:13.5px;color:var(--ink);background:#fafbf8;transition:border .2s;
+}
+.fi:focus{outline:none;border-color:var(--leaf);background:var(--white);}
+.panel{background:var(--white);border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.panel-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bark);margin-bottom:16px;}
+
+/* ─── COMMUNITY ──────────────────────────── */
+.post{background:var(--white);border-radius:18px;padding:24px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);}
+.post-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bark);}
+.post-author{font-size:11px;color:var(--muted);margin-top:3px;}
+.post-body{font-size:13.5px;color:#444;margin-top:10px;line-height:1.65;}
+.post-actions{display:flex;gap:14px;margin-top:14px;}
+.action-btn{
+  display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);
+  background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:8px;
+  font-family:inherit;transition:all .15s;
+}
+.action-btn:hover{background:var(--sky);color:var(--leaf);}
+.action-btn.liked{color:var(--leaf);font-weight:700;}
+.comment-section{margin-top:14px;padding-top:14px;border-top:1px solid #f0f0f0;display:none;}
+.comment{background:var(--fog);border-radius:10px;padding:10px 14px;margin-bottom:8px;}
+.c-author{font-size:11px;color:var(--leaf);font-weight:700;}
+.c-text{font-size:13px;color:#555;margin-top:3px;}
+.c-input-row{display:flex;gap:8px;margin-top:8px;}
+.c-input-row input{flex:1;padding:9px 13px;border:1.5px solid #dde5d8;border-radius:10px;font-size:13px;}
+.c-input-row input:focus{outline:none;border-color:var(--leaf);}
+
+/* ─── SCHEMES ────────────────────────────── */
+.state-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.tab{
+  padding:9px 18px;border-radius:20px;font-size:13px;font-weight:600;
+  border:1.5px solid #dde5d8;background:var(--white);color:var(--muted);
+  cursor:pointer;transition:all .18s;
+}
+.tab.active{background:var(--leaf);border-color:var(--leaf);color:var(--white);box-shadow:0 4px 12px rgba(45,106,47,.3);}
+.scheme-card{
+  background:var(--white);border-radius:16px;padding:22px 24px;
+  margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,.05);
+  border-left:4px solid var(--gold);
+}
+.sc-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--bark);}
+.sc-elig{font-size:13px;color:var(--muted);margin-top:6px;}
+.sc-link{display:inline-block;margin-top:10px;font-size:13px;color:var(--blue);font-weight:600;text-decoration:none;}
+.sc-link:hover{text-decoration:underline;}
+
+/* ─── FINANCE ────────────────────────────── */
+.emi-box{
+  border-radius:20px;padding:28px;color:var(--white);margin-top:24px;
+  background:linear-gradient(135deg,#1a3a1e 0%,var(--leaf) 100%);
+  box-shadow:0 8px 24px rgba(26,58,30,.35);
+}
+.emi-box h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;}
+.emi-box p{font-size:12.5px;opacity:.75;}
+.emi-inputs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px;}
+.emi-inputs label{font-size:11px;opacity:.7;display:block;margin-bottom:5px;letter-spacing:.3px;}
+.emi-inputs input{
+  width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.15);color:var(--white);font-family:inherit;font-size:14px;
+}
+.emi-inputs input:focus{outline:none;border-color:rgba(255,255,255,.7);}
+.emi-result{margin-top:18px;}
+.emi-amount{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;line-height:1;}
+.emi-sub{font-size:13px;opacity:.75;margin-top:4px;}
+.txn-list{margin-top:6px;}
+.txn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 0;border-bottom:1px solid #f3f3f0;
+}
+.txn:last-child{border:none;}
+.txn-info .tc{font-size:13px;color:var(--ink);}
+.txn-info .tn{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.txn-amt{font-size:14px;font-weight:700;}
+.t-income{color:#2e7d32;}
+.t-expense{color:var(--red);}
+.add-entry-form{background:var(--white);border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 2px 10px rgba(0,0,0,.05);}
+
+/* ─── DISEASE DETECT ─────────────────────── */
+.disease-box{border-radius:18px;padding:28px;background:linear-gradient(135deg,#1a237e,#283593);color:var(--white);margin-bottom:24px;}
+.disease-box h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px;}
+.di-url{width:100%;margin-top:14px;padding:11px 14px;border-radius:11px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.12);color:var(--white);font-family:inherit;font-size:13.5px;}
+.di-url:focus{outline:none;border-color:rgba(255,255,255,.6);}
+.di-result{margin-top:16px;background:rgba(255,255,255,.12);border-radius:12px;padding:14px;}
+.di-result .dr{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+.di-result .dm{font-size:13px;opacity:.82;margin-top:4px;}
+.di-conf{display:inline-block;margin-top:8px;background:rgba(255,255,255,.2);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+
+/* ─── TOAST ──────────────────────────────── */
+#toast{
+  position:fixed;bottom:22px;right:22px;background:var(--bark);color:var(--white);
+  padding:13px 22px;border-radius:12px;font-size:13.5px;z-index:9999;display:none;
+  align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.28);max-width:320px;
+}
+#toast.show{display:flex;animation:toastIn .3s ease;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── MODAL ──────────────────────────────── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--white);border-radius:22px;padding:30px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:riseIn .35s ease;}
+.modal h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--bark);margin-bottom:20px;}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);}
+.modal-close:hover{color:var(--ink);}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ═══════════════════════════════════════════════════ -->
+<div id="s-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-box">🌾</div>
+      <div>
+        <h1>KrishiMitra</h1>
+        <p>Farmer's Companion Platform</p>
+      </div>
+    </div>
+    <div class="field"><label>Email Address</label><input id="li-email" type="email" value="farmer@km.com"/></div>
+    <div class="field"><label>Password</label><input id="li-pass" type="password" value="Password123"/></div>
+    <div class="err-msg" id="li-err">Invalid credentials. Try farmer@km.com / Password123</div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <p class="hint">Demo: <b>farmer@km.com</b> / <b>Password123</b><br>or register a new account below</p>
+    <div style="text-align:center;margin-top:14px;">
+      <button class="btn btn-s" onclick="openReg()" style="width:100%;">+ Register New Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════ -->
+<div id="s-app" class="screen">
+  <aside>
+    <div class="sb-brand">
+      <div class="sb-icon">🌾</div>
+      <h2>KrishiMitra</h2>
+      <p>Farmer's Companion</p>
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-av">R</div>
+        <div><div class="sb-uname" id="sb-name">Ravi Sharma</div><div class="sb-role" id="sb-role">farmer</div></div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-link active" onclick="nav('dashboard',this)"><span class="ni">🏡</span>Dashboard</button>
+      <button class="nav-link" onclick="nav('marketplace',this)"><span class="ni">🛒</span>Marketplace</button>
+      <button class="nav-link" onclick="nav('community',this)"><span class="ni">👥</span>Community</button>
+      <button class="nav-link" onclick="nav('schemes',this)"><span class="ni">📋</span>Schemes</button>
+      <button class="nav-link" onclick="nav('finance',this)"><span class="ni">💰</span>Finance</button>
+      <button class="nav-link" onclick="nav('disease',this)"><span class="ni">🔬</span>Disease Detect</button>
+    </nav>
+    <div class="sb-footer">
+      <button class="logout-btn" onclick="doLogout()">⬅ Logout</button>
+    </div>
+  </aside>
+
+  <main>
+    <!-- DASHBOARD -->
+    <div id="p-dashboard" class="page active">
+      <div class="ph"><h2 class="font-display">Farmer Dashboard</h2><p>Personalized crop insights for your land & season</p></div>
+      <div class="weather-card">
+        <div>
+          <div style="font-size:12px;opacity:.75;margin-bottom:6px;">📍 Your Region · <span id="dash-season">Rabi</span> Season</div>
+          <div class="wc-temp">24°C</div>
+          <div style="font-size:13px;opacity:.8;margin-top:6px;">Partly Cloudy · Humidity 68% · Wind 12 km/h</div>
+        </div>
+        <div class="wc-icon">⛅</div>
+      </div>
+      <div class="stat-row" id="dash-stats"></div>
+      <div class="ai-pill">✨ AI Recommendations</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <button class="btn btn-g" onclick="getRecommendations()">📍 Get Crop Recommendations</button>
+        <select class="fi" style="width:auto;padding:10px 14px;" onchange="changeSeason(this.value)">
+          <option value="Rabi">Rabi Season</option>
+          <option value="Kharif">Kharif Season</option>
+          <option value="Zaid">Zaid Season</option>
+        </select>
+      </div>
+      <div class="crop-grid" id="crop-grid"></div>
+    </div>
+
+    <!-- MARKETPLACE -->
+    <div id="p-marketplace" class="page">
+      <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div><h2 class="font-display">Crop Marketplace</h2><p>Buy & sell crops with transparent MSP pricing</p></div>
+        <button class="btn btn-g" onclick="toggleModal('m-listing')">+ New Listing</button>
+      </div>
+      <div id="listings-container"></div>
+    </div>
+
+    <!-- COMMUNITY -->
+    <div id="p-community" class="page">
+      <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div><h2 class="font-display">Community Portal</h2><p>Share knowledge, ask questions, help fellow farmers</p></div>
+        <button class="btn btn-g" onclick="toggleModal('m-post')">+ New Post</button>
+      </div>
+      <div id="posts-container"></div>
+    </div>
+
+    <!-- SCHEMES -->
+    <div id="p-schemes" class="page">
+      <div class="ph"><h2 class="font-display">Government Schemes</h2><p>Explore agricultural subsidies & programs by state</p></div>
+      <div class="state-tabs" id="state-tabs"></div>
+      <div id="schemes-container"></div>
+    </div>
+
+    <!-- FINANCE -->
+    <div id="p-finance" class="page">
+      <div class="ph" style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div><h2 class="font-display">Finance Dashboard</h2><p>Track income, expenses & calculate loan EMI</p></div>
+        <button class="btn btn-g" onclick="toggleModal('m-entry')">+ Add Entry</button>
+      </div>
+      <div class="stat-row" id="fin-stats"></div>
+      <div class="emi-box">
+        <h3>💳 Loan EMI Calculator</h3>
+        <p>Calculate monthly instalments for Kisan Credit Card or farm loans</p>
+        <div class="emi-inputs">
+          <div><label>Principal (₹)</label><input type="number" id="emi-p" value="100000"/></div>
+          <div><label>Annual Rate (%)</label><input type="number" id="emi-r" value="8"/></div>
+          <div><label>Tenure (months)</label><input type="number" id="emi-m" value="24"/></div>
+        </div>
+        <button class="btn" style="margin-top:16px;background:var(--white);color:var(--leaf);font-weight:700;" onclick="calcEMI()">Calculate EMI</button>
+        <div class="emi-result" id="emi-result" style="display:none;">
+          <div class="emi-amount" id="emi-val"></div>
+          <div class="emi-sub" id="emi-sub"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="panel-title">Recent Transactions</div>
+        <div class="txn-list" id="txn-list"></div>
+      </div>
+    </div>
+
+    <!-- DISEASE DETECT -->
+    <div id="p-disease" class="page">
+      <div class="ph"><h2 class="font-display">Crop Disease Detection</h2><p>AI-powered analysis — enter an image URL to detect disease</p></div>
+      <div class="disease-box">
+        <h3>🔬 Disease Scanner</h3>
+        <p>Paste any crop image URL and our AI will identify the disease and recommend treatment</p>
+        <input class="di-url" id="di-url" placeholder="https://example.com/crop-image.jpg" />
+        <div style="margin-top:12px;">
+          <button class="btn" style="background:var(--white);color:#283593;font-weight:700;" onclick="detectDisease()">🔍 Analyze Crop</button>
+        </div>
+        <div class="di-result" id="di-result" style="display:none;">
+          <div class="dr" id="di-disease"></div>
+          <div class="dm" id="di-medicine"></div>
+          <span class="di-conf" id="di-conf"></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="panel-title">Common Crop Diseases Reference</div>
+        <div id="disease-ref"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ══ MODALS ════════════════════════════════════════════════ -->
+<!-- New Listing -->
+<div class="modal-bg" id="m-listing">
+  <div class="modal">
+    <button class="modal-close" onclick="toggleModal('m-listing')">✕</button>
+    <h3>🌾 Create Crop Listing</h3>
+    <div class="form-grid">
+      <div class="full"><label class="fl">Crop Name</label><input class="fi" id="l-crop" placeholder="e.g. Wheat"/></div>
+      <div><label class="fl">Quantity (kg)</label><input class="fi" type="number" id="l-qty" placeholder="500"/></div>
+      <div><label class="fl">Your Price/kg (₹)</label><input class="fi" type="number" id="l-price" placeholder="22"/></div>
+      <div><label class="fl">MSP Price/kg (₹)</label><input class="fi" type="number" id="l-msp" placeholder="21.5"/></div>
+      <div><label class="fl">Status</label>
+        <select class="fi" id="l-status"><option value="available">Available</option><option value="sold">Sold</option></select>
+      </div>
+    </div>
+    <button class="btn btn-g" style="margin-top:20px;width:100%;" onclick="saveListing()">Save Listing</button>
+  </div>
+</div>
+
+<!-- New Post -->
+<div class="modal-bg" id="m-post">
+  <div class="modal">
+    <button class="modal-close" onclick="toggleModal('m-post')">✕</button>
+    <h3>📝 Create Community Post</h3>
+    <div style="margin-bottom:14px;"><label class="fl">Title</label><input class="fi" id="p-title" placeholder="What's your question or insight?"/></div>
+    <div><label class="fl">Content</label><textarea class="fi" id="p-body" rows="4" style="resize:none;" placeholder="Share details…"></textarea></div>
+    <button class="btn btn-g" style="margin-top:20px;width:100%;" onclick="savePost()">Post to Community</button>
+  </div>
+</div>
+
+<!-- New Finance Entry -->
+<div class="modal-bg" id="m-entry">
+  <div class="modal">
+    <button class="modal-close" onclick="toggleModal('m-entry')">✕</button>
+    <h3>💰 Add Finance Entry</h3>
+    <div class="form-grid">
+      <div><label class="fl">Type</label>
+        <select class="fi" id="e-type"><option value="income">Income</option><option value="expense">Expense</option></select>
+      </div>
+      <div><label class="fl">Category</label><input class="fi" id="e-cat" placeholder="e.g. Crop Sale"/></div>
+      <div><label class="fl">Amount (₹)</label><input class="fi" type="number" id="e-amt" placeholder="50000"/></div>
+      <div><label class="fl">Note (optional)</label><input class="fi" id="e-note" placeholder="Description…"/></div>
+    </div>
+    <button class="btn btn-g" style="margin-top:20px;width:100%;" onclick="saveEntry()">Save Entry</button>
+  </div>
+</div>
+
+<!-- Register -->
+<div class="modal-bg" id="m-reg">
+  <div class="modal">
+    <button class="modal-close" onclick="toggleModal('m-reg')">✕</button>
+    <h3>🌱 Create Account</h3>
+    <div class="form-grid">
+      <div class="full"><label class="fl">Full Name</label><input class="fi" id="r-name" placeholder="Your name"/></div>
+      <div class="full"><label class="fl">Email</label><input class="fi" type="email" id="r-email" placeholder="you@example.com"/></div>
+      <div class="full"><label class="fl">Password</label><input class="fi" type="password" id="r-pass" placeholder="Min 6 characters"/></div>
+      <div><label class="fl">Role</label>
+        <select class="fi" id="r-role"><option value="farmer">Farmer</option><option value="buyer">Buyer</option></select>
+      </div>
+      <div><label class="fl">State</label>
+        <select class="fi" id="r-state">
+          <option>Maharashtra</option><option>Karnataka</option><option>Punjab</option><option>Delhi</option><option>Uttar Pradesh</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-g" style="margin-top:20px;width:100%;" onclick="doRegister()">Create Account</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">✅ <span id="toast-msg"></span></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   STATE / STORAGE
+══════════════════════════════════════════════════════════════ */
+const STORAGE_KEY = 'km_data';
+let currentUser = null;
+let currentSeason = 'Rabi';
+
+const DEFAULT_DATA = {
+  users: [
+    { id:'u1', name:'Ravi Sharma',     email:'farmer@km.com', password:'Password123', role:'farmer', state:'Maharashtra' },
+    { id:'u2', name:'Anita Patel',     email:'buyer@km.com',  password:'Password123', role:'buyer',  state:'Karnataka' },
+    { id:'u3', name:'Admin KrishiMitra',email:'admin@km.com', password:'Password123', role:'admin',  state:'Delhi' }
+  ],
+  listings: [
+    { id:'l1', userId:'u1', farmerName:'Ravi Sharma', cropName:'Wheat',         quantityKg:450, pricePerKg:22,  mspPricePerKg:21.5, status:'available' },
+    { id:'l2', userId:'u1', farmerName:'Ravi Sharma', cropName:'Rice (Basmati)',quantityKg:300, pricePerKg:42,  mspPricePerKg:40,   status:'available' },
+    { id:'l3', userId:'u1', farmerName:'Ravi Sharma', cropName:'Chickpea',      quantityKg:200, pricePerKg:56,  mspPricePerKg:54,   status:'sold' },
+    { id:'l4', userId:'u1', farmerName:'Ravi Sharma', cropName:'Mustard',       quantityKg:150, pricePerKg:55,  mspPricePerKg:52.5, status:'available' },
+    { id:'l5', userId:'u1', farmerName:'Ravi Sharma', cropName:'Soybean',       quantityKg:500, pricePerKg:41,  mspPricePerKg:39.5, status:'available' }
+  ],
+  posts: [
+    { id:'p1', userId:'u1', author:'Ravi Sharma', role:'farmer', title:'Best practices for wheat irrigation in Rabi season?',  content:'I have 5 acres near Nagpur. When should I start irrigation? Last year I faced waterlogging issues near the east plot.', upvotes:['u2'], comments:[] },
+    { id:'p2', userId:'u1', author:'Ravi Sharma', role:'farmer', title:'Pest attack on my tomato crop – urgent help!',           content:'Seeing white flies and yellowish leaves. Used neem oil but not much effect. Has anyone dealt with this before?', upvotes:[], comments:[{id:'c1',author:'Anita Patel',text:'Try Imidacloprid spray – worked for me!'}] },
+    { id:'p3', userId:'u2', author:'Anita Patel', role:'buyer',  title:'PM-KISAN 18th installment released – check your account!', content:'The government has released the 18th installment. Check your Aadhaar-linked account on pmkisan.gov.in.', upvotes:['u1','u2'], comments:[] },
+    { id:'p4', userId:'u1', author:'Ravi Sharma', role:'farmer', title:'Organic farming certification – my experience',            content:'Got NPOP certification after 3 years of transition. Happy to share the full process with anyone interested in going organic.', upvotes:['u2'], comments:[] }
+  ],
+  schemes: [
+    { id:'s1', state:'Maharashtra', title:'PM-KISAN Samman Nidhi',        eligibility:'Small & marginal farmers with cultivable land', applyLink:'https://pmkisan.gov.in' },
+    { id:'s2', state:'Maharashtra', title:'Mahadhhan Subsidy Scheme',     eligibility:'Farmers with less than 2 hectares of land',      applyLink:'https://krishi.maharashtra.gov.in' },
+    { id:'s3', state:'Maharashtra', title:'Namo Shetkari Mahasanman Nidhi',eligibility:'All registered farmers in Maharashtra',         applyLink:'https://nsmn.maharashtra.gov.in' },
+    { id:'s4', state:'Karnataka',   title:'KCC Loan Support',             eligibility:'Registered farmers with valid land records',      applyLink:'https://agricoop.nic.in' },
+    { id:'s5', state:'Karnataka',   title:'Krishi Bhagya Scheme',         eligibility:'Farmers in dry land talukas',                    applyLink:'https://raitamitra.kar.nic.in' },
+    { id:'s6', state:'Punjab',      title:'Punjab Kisan Card',            eligibility:'Registered farmers with land records',           applyLink:'https://agripb.gov.in' },
+    { id:'s7', state:'Punjab',      title:'Zero Interest Crop Loan',      eligibility:'Small farmers with less than 5 acres',           applyLink:'https://agripb.gov.in' },
+    { id:'s8', state:'Delhi',       title:'Mukhyamantri Kisan Mitra',     eligibility:'Farmers within Delhi NCR with Aadhaar accounts', applyLink:'https://delhi.gov.in' },
+    { id:'s9', state:'Uttar Pradesh',title:'UP Kisan Karj Rahat Yojana', eligibility:'Small farmers with crop loans in UP',            applyLink:'https://upkisankarjrahat.upsdc.gov.in' }
+  ],
+  entries: [
+    { id:'e1', userId:'u1', type:'income',  category:'Crop Sale', amount:84500, note:'Wheat sale – March' },
+    { id:'e2', userId:'u1', type:'income',  category:'Crop Sale', amount:62000, note:'Rice sale – February' },
+    { id:'e3', userId:'u1', type:'income',  category:'Subsidy',   amount:38000, note:'PM-KISAN installment' },
+    { id:'e4', userId:'u1', type:'expense', category:'Seeds',     amount:12000, note:'Wheat hybrid seeds' },
+    { id:'e5', userId:'u1', type:'expense', category:'Fertilizer',amount:18500, note:'DAP + Urea' },
+    { id:'e6', userId:'u1', type:'expense', category:'Labour',    amount:22000, note:'Harvesting labour' },
+    { id:'e7', userId:'u1', type:'expense', category:'Equipment', amount:14700, note:'Tractor rental' }
+  ]
+};
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_DATA; }
+  catch { return DEFAULT_DATA; }
+}
+function saveData(d) { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+function getData() { return loadData(); }
+function uid() { return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,7); }
+
+/* ══════════════════════════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════════════════════════ */
+function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  const d = getData();
+  const user = d.users.find(u => u.email === email && u.password === pass);
+  if (!user) { document.getElementById('li-err').classList.add('show'); return; }
+  document.getElementById('li-err').classList.remove('show');
+  currentUser = user;
+  localStorage.setItem('km_session', JSON.stringify(user));
+  showApp();
+}
+function openReg() { toggleModal('m-reg'); }
+function doRegister() {
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass  = document.getElementById('r-pass').value;
+  const role  = document.getElementById('r-role').value;
+  const state = document.getElementById('r-state').value;
+  if (!name||!email||!pass) { toast('Please fill all fields'); return; }
+  if (pass.length < 6) { toast('Password must be at least 6 characters'); return; }
+  const d = getData();
+  if (d.users.find(u=>u.email===email)) { toast('Email already registered'); return; }
+  const user = { id:uid(), name, email, password:pass, role, state };
+  d.users.push(user);
+  saveData(d);
+  currentUser = user;
+  localStorage.setItem('km_session', JSON.stringify(user));
+  toggleModal('m-reg');
+  showApp();
+  toast('Account created! Welcome, ' + name + ' 🌾');
+}
+function doLogout() {
+  currentUser = null;
+  localStorage.removeItem('km_session');
+  document.getElementById('s-app').classList.remove('active');
+  document.getElementById('s-login').classList.add('active');
+}
+function showApp() {
+  document.getElementById('s-login').classList.remove('active');
+  document.getElementById('s-app').classList.add('active');
+  document.getElementById('sb-name').textContent = currentUser.name;
+  document.getElementById('sb-role').textContent = currentUser.role;
+  document.getElementById('sb-av').textContent   = currentUser.name.charAt(0).toUpperCase();
+  renderDashboard(); renderListings(); renderPosts();
+  renderSchemes('Maharashtra'); renderFinance(); renderDiseaseRef();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════════════════════ */
+function nav(pageId, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('p-' + pageId).classList.add('active');
+  el.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════════════ */
+const SOIL_MAP = [
+  {maxLat:15,soil:'Black Cotton Soil'},{maxLat:22,soil:'Alluvial Soil'},
+  {maxLat:30,soil:'Red Soil'},{maxLat:90,soil:'Laterite Soil'}
+];
+const CROP_MAP = {
+  'Black Cotton Soil': [{crop:'Cotton',icon:'🌿',profit:31200},{crop:'Soybean',icon:'🫘',profit:26800},{crop:'Tur',icon:'🌱',profit:22100}],
+  'Alluvial Soil':     [{crop:'Wheat',icon:'🌾',profit:28400},{crop:'Rice',icon:'🍚',profit:24600},{crop:'Sugarcane',icon:'🎋',profit:35100}],
+  'Red Soil':          [{crop:'Millets',icon:'🌾',profit:18900},{crop:'Groundnut',icon:'🥜',profit:21400},{crop:'Pulses',icon:'🫘',profit:19200}],
+  'Laterite Soil':     [{crop:'Cashew',icon:'🥜',profit:42000},{crop:'Tea',icon:'🍵',profit:38500},{crop:'Coffee',icon:'☕',profit:45200}]
+};
+const SEASON_CROPS = {
+  Rabi:   ['Wheat','Chickpea','Mustard','Peas'],
+  Kharif: ['Rice','Cotton','Soybean','Maize'],
+  Zaid:   ['Watermelon','Cucumber','Moong','Fodder']
+};
+
+function renderDashboard() {
+  const d = getData();
+  const myListings = d.listings.filter(l => l.userId === currentUser.id);
+  const myEntries  = d.entries.filter(e => e.userId === currentUser.id);
+  const revenue = myEntries.filter(e=>e.type==='income').reduce((a,b)=>a+b.amount,0);
+  const expense = myEntries.filter(e=>e.type==='expense').reduce((a,b)=>a+b.amount,0);
+  document.getElementById('dash-stats').innerHTML = [
+    { label:'My Listings', value: myListings.length, sub:'Active crops listed', color:'border-lime-500' },
+    { label:'Net Profit',  value:'₹'+revenue.toLocaleString('en-IN'), sub:'Total income tracked', color:'border-green-600' },
+    { label:'Community',   value: d.posts.length, sub:'Posts in your community', color:'border-amber-400' }
+  ].map(s=>`
+    <div class="stat-box" style="border-left-color:${s.color.replace('border-','').replace('-500','').replace('-600','').replace('-400','')}">
+      <div class="sl">${s.label}</div>
+      <div class="sv">${s.value}</div>
+      <div class="ss">${s.sub}</div>
+    </div>`).join('');
+
+  getRecommendations();
+}
+
+function changeSeason(s) {
+  currentSeason = s;
+  document.getElementById('dash-season').textContent = s;
+  getRecommendations();
+}
+
+function getRecommendations() {
+  const lat = 19.5; // Default to central India
+  const soil = SOIL_MAP.find(r => lat <= r.maxLat)?.soil || 'Alluvial Soil';
+  const base = CROP_MAP[soil];
+  const seasonBonus = SEASON_CROPS[currentSeason] || [];
+  const fertilizer = 'Urea + DAP';
+  const recs = base.map(c => ({
+    ...c,
+    seeds: c.crop + ' Hybrid Seeds',
+    fertilizers: fertilizer,
+    yield: 2.8,
+    profit: c.profit + (seasonBonus.includes(c.crop) ? 4000 : 0)
+  }));
+
+  document.getElementById('crop-grid').innerHTML = recs.map(r=>`
+    <div class="crop-card">
+      <div class="cc-icon">${r.icon}</div>
+      <div class="cc-name">${r.crop}</div>
+      <div class="cc-detail">Seeds: ${r.seeds}<br>Fertilizer: ${r.fertilizers}<br>Yield: ${r.yield} t/acre</div>
+      <div class="cc-profit">₹${r.profit.toLocaleString('en-IN')}/acre</div>
+      ${seasonBonus.includes(r.crop) ? '<span class="badge b-green" style="margin-top:6px;">✓ Best for '+currentSeason+'</span>' : ''}
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MARKETPLACE
+══════════════════════════════════════════════════════════════ */
+function renderListings() {
+  const d = getData();
+  const el = document.getElementById('listings-container');
+  if (!d.listings.length) { el.innerHTML = '<div class="card" style="text-align:center;padding:40px;color:var(--muted);">No listings yet. Be the first to list a crop!</div>'; return; }
+  el.innerHTML = d.listings.map(l=>`
+    <div class="listing">
+      <div>
+        <div class="l-name">🌾 ${l.cropName}</div>
+        <div class="l-sub">${l.quantityKg} kg &nbsp;·&nbsp; <span style="color:var(--leaf);font-weight:700;">₹${l.pricePerKg}/kg</span> &nbsp;<span style="color:#f57f17;">MSP: ₹${l.mspPricePerKg}</span></div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:3px;">by ${l.farmerName}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="badge ${l.status==='available'?'b-green':'b-amber'}">${l.status}</span>
+        ${l.userId===currentUser.id?`<button class="btn btn-r" style="padding:6px 12px;font-size:12px;" onclick="deleteListing('${l.id}')">✕</button>`:''}
+      </div>
+    </div>`).join('');
+}
+function saveListing() {
+  const crop  = document.getElementById('l-crop').value.trim();
+  const qty   = parseFloat(document.getElementById('l-qty').value);
+  const price = parseFloat(document.getElementById('l-price').value);
+  const msp   = parseFloat(document.getElementById('l-msp').value);
+  const status= document.getElementById('l-status').value;
+  if (!crop||!qty||!price||!msp) { toast('Please fill all fields'); return; }
+  const d = getData();
+  d.listings.unshift({ id:uid(), userId:currentUser.id, farmerName:currentUser.name, cropName:crop, quantityKg:qty, pricePerKg:price, mspPricePerKg:msp, status });
+  saveData(d);
+  toggleModal('m-listing');
+  ['l-crop','l-qty','l-price','l-msp'].forEach(id => document.getElementById(id).value='');
+  renderListings();
+  toast('Listing created!');
+}
+function deleteListing(id) {
+  const d = getData();
+  d.listings = d.listings.filter(l => l.id !== id);
+  saveData(d);
+  renderListings();
+  toast('Listing removed');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COMMUNITY
+══════════════════════════════════════════════════════════════ */
+function renderPosts() {
+  const d = getData();
+  const el = document.getElementById('posts-container');
+  if (!d.posts.length) { el.innerHTML = '<div class="card" style="text-align:center;padding:40px;color:var(--muted);">No posts yet. Start the conversation!</div>'; return; }
+  el.innerHTML = d.posts.map(p=>{
+    const liked = p.upvotes.includes(currentUser.id);
+    const comments = p.comments.map(c=>`
+      <div class="comment">
+        <div class="c-author">${c.author}</div>
+        <div class="c-text">${c.text}</div>
+      </div>`).join('');
+    return `
+    <div class="post" id="post-${p.id}">
+      <div class="post-title">${p.title}</div>
+      <div class="post-author">${p.author} · <span style="text-transform:capitalize;">${p.role}</span></div>
+      <div class="post-body">${p.content}</div>
+      <div class="post-actions">
+        <button class="action-btn ${liked?'liked':''}" onclick="upvote('${p.id}')">👍 ${p.upvotes.length} Upvotes</button>
+        <button class="action-btn" onclick="toggleComments('${p.id}')">💬 ${p.comments.length} Comments</button>
+        ${p.userId===currentUser.id?`<button class="action-btn" onclick="deletePost('${p.id}')">🗑 Delete</button>`:''}
+      </div>
+      <div class="comment-section" id="cs-${p.id}">
+        ${comments}
+        <div class="c-input-row">
+          <input id="ci-${p.id}" placeholder="Add a comment…" onkeydown="if(event.key==='Enter')addComment('${p.id}')"/>
+          <button class="btn btn-g" style="padding:9px 14px;font-size:12px;" onclick="addComment('${p.id}')">Post</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function savePost() {
+  const title = document.getElementById('p-title').value.trim();
+  const body  = document.getElementById('p-body').value.trim();
+  if (!title||!body) { toast('Please fill all fields'); return; }
+  const d = getData();
+  d.posts.unshift({ id:uid(), userId:currentUser.id, author:currentUser.name, role:currentUser.role, title, content:body, upvotes:[], comments:[] });
+  saveData(d);
+  toggleModal('m-post');
+  document.getElementById('p-title').value='';
+  document.getElementById('p-body').value='';
+  renderPosts();
+  toast('Post published!');
+}
+function deletePost(id) {
+  const d = getData();
+  d.posts = d.posts.filter(p => p.id !== id);
+  saveData(d);
+  renderPosts();
+  toast('Post deleted');
+}
+function upvote(id) {
+  const d = getData();
+  const post = d.posts.find(p=>p.id===id);
+  if (!post) return;
+  const idx = post.upvotes.indexOf(currentUser.id);
+  if (idx === -1) post.upvotes.push(currentUser.id);
+  else post.upvotes.splice(idx, 1);
+  saveData(d);
+  renderPosts();
+}
+function toggleComments(id) {
+  const el = document.getElementById('cs-'+id);
+  el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+function addComment(postId) {
+  const input = document.getElementById('ci-'+postId);
+  const text = input.value.trim();
+  if (!text) return;
+  const d = getData();
+  const post = d.posts.find(p=>p.id===postId);
+  if (!post) return;
+  post.comments.push({ id:uid(), author:currentUser.name, text });
+  saveData(d);
+  renderPosts();
+  // Re-open comments section
+  setTimeout(() => {
+    const el = document.getElementById('cs-'+postId);
+    if (el) el.style.display = 'block';
+  }, 50);
+  toast('Comment added!');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SCHEMES
+══════════════════════════════════════════════════════════════ */
+let currentState = 'Maharashtra';
+function renderSchemeTabs() {
+  const d = getData();
+  const states = [...new Set(d.schemes.map(s=>s.state))];
+  document.getElementById('state-tabs').innerHTML = states.map(s=>`
+    <button class="tab ${s===currentState?'active':''}" onclick="renderSchemes('${s}')">${s}</button>`).join('');
+}
+function renderSchemes(state) {
+  currentState = state;
+  const d = getData();
+  renderSchemeTabs();
+  const list = d.schemes.filter(s=>s.state===state);
+  document.getElementById('schemes-container').innerHTML = list.length
+    ? list.map(s=>`
+        <div class="scheme-card">
+          <div class="sc-title">📋 ${s.title}</div>
+          <div class="sc-elig"><b>Eligibility:</b> ${s.eligibility}</div>
+          <a class="sc-link" href="${s.applyLink}" target="_blank" rel="noopener">Apply Now →</a>
+        </div>`).join('')
+    : '<div class="card" style="text-align:center;padding:30px;color:var(--muted);">No schemes found for '+state+'.</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FINANCE
+══════════════════════════════════════════════════════════════ */
+function renderFinance() {
+  const d = getData();
+  const entries = d.entries.filter(e=>e.userId===currentUser.id);
+  const rev  = entries.filter(e=>e.type==='income').reduce((a,b)=>a+b.amount,0);
+  const exp  = entries.filter(e=>e.type==='expense').reduce((a,b)=>a+b.amount,0);
+  const prof = rev - exp;
+
+  document.getElementById('fin-stats').innerHTML = [
+    { label:'Total Revenue', value:'₹'+rev.toLocaleString('en-IN'),  color:'#4caf50', icon:'📈' },
+    { label:'Total Expenses',value:'₹'+exp.toLocaleString('en-IN'),  color:'#e53935', icon:'📉' },
+    { label:'Net Profit',    value:'₹'+prof.toLocaleString('en-IN'), color:'#1565c0', icon:'💰' }
+  ].map(s=>`
+    <div class="stat-box" style="border-left-color:${s.color}">
+      <div class="sl">${s.icon} ${s.label}</div>
+      <div class="sv" style="color:${s.color}">${s.value}</div>
+    </div>`).join('');
+
+  document.getElementById('txn-list').innerHTML = entries.slice().reverse().slice(0,10).map(e=>`
+    <div class="txn">
+      <div class="txn-info">
+        <div class="tc"><span class="badge ${e.type==='income'?'b-green':'b-red'}" style="margin-right:8px;">${e.type}</span>${e.category}</div>
+        ${e.note?`<div class="tn">${e.note}</div>`:''}
+      </div>
+      <div class="txn-amt ${e.type==='income'?'t-income':'t-expense'}">${e.type==='income'?'+':'-'}₹${e.amount.toLocaleString('en-IN')}</div>
+    </div>`).join('') || '<div style="color:var(--muted);text-align:center;padding:20px;">No transactions yet.</div>';
+}
+function saveEntry() {
+  const type = document.getElementById('e-type').value;
+  const cat  = document.getElementById('e-cat').value.trim();
+  const amt  = parseFloat(document.getElementById('e-amt').value);
+  const note = document.getElementById('e-note').value.trim();
+  if (!cat||!amt) { toast('Please fill required fields'); return; }
+  const d = getData();
+  d.entries.unshift({ id:uid(), userId:currentUser.id, type, category:cat, amount:amt, note });
+  saveData(d);
+  toggleModal('m-entry');
+  ['e-cat','e-amt','e-note'].forEach(id => document.getElementById(id).value='');
+  renderFinance();
+  renderDashboard();
+  toast('Entry saved!');
+}
+function calcEMI() {
+  const P = parseFloat(document.getElementById('emi-p').value)||100000;
+  const r = (parseFloat(document.getElementById('emi-r').value)||8) / 12 / 100;
+  const n = parseInt(document.getElementById('emi-m').value)||24;
+  const emi = r ? (P * r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1) : P/n;
+  const total = emi * n;
+  document.getElementById('emi-val').textContent = '₹'+Math.round(emi).toLocaleString('en-IN') + '/month';
+  document.getElementById('emi-sub').textContent = 'Total: ₹'+Math.round(total).toLocaleString('en-IN') + ' · Interest: ₹'+Math.round(total-P).toLocaleString('en-IN');
+  document.getElementById('emi-result').style.display='block';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DISEASE DETECTION
+══════════════════════════════════════════════════════════════ */
+const DISEASE_DB = [
+  { disease:'Leaf Blight',      medicine:'Mancozeb 75% WP',        confidence:0.91, color:'#e53935' },
+  { disease:'Powdery Mildew',   medicine:'Wettable Sulphur 80% WP', confidence:0.87, color:'#f57f17' },
+  { disease:'Root Rot',         medicine:'Thiram 75% WP',           confidence:0.84, color:'#6a1b9a' },
+  { disease:'Bacterial Wilt',   medicine:'Copper Oxychloride 50%',  confidence:0.89, color:'#c62828' },
+  { disease:'Healthy Crop 🌿',  medicine:'No treatment required',   confidence:0.96, color:'#2e7d32' }
+];
+function detectDisease() {
+  const url = document.getElementById('di-url').value.trim();
+  if (!url) { toast('Please enter an image URL'); return; }
+  const idx = url.length % DISEASE_DB.length;
+  const r = DISEASE_DB[idx];
+  document.getElementById('di-disease').textContent = '🔬 ' + r.disease;
+  document.getElementById('di-disease').style.color = r.color;
+  document.getElementById('di-medicine').textContent = '💊 Recommended: ' + r.medicine;
+  document.getElementById('di-conf').textContent = 'Confidence: ' + (r.confidence*100).toFixed(0) + '%';
+  document.getElementById('di-result').style.display='block';
+  toast('Analysis complete!');
+}
+function renderDiseaseRef() {
+  document.getElementById('disease-ref').innerHTML = DISEASE_DB.map(d=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f0;">
+      <div>
+        <div style="font-weight:600;font-size:13.5px;color:var(--bark);">${d.disease}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:2px;">💊 ${d.medicine}</div>
+      </div>
+      <span class="badge b-blue">Accuracy ${(d.confidence*100).toFixed(0)}%</span>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════════════════════ */
+function toggleModal(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+}
+// Close modal on backdrop click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('show'); });
+});
+
+let toastTimer;
+function toast(msg) {
+  clearTimeout(toastTimer);
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast').classList.add('show');
+  toastTimer = setTimeout(() => document.getElementById('toast').classList.remove('show'), 3000);
+}
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('s-login').classList.contains('active')) doLogin();
+});
+
+// Auto-login from session
+(function init() {
+  try {
+    const sess = JSON.parse(localStorage.getItem('km_session'));
+    if (sess) { currentUser = sess; showApp(); }
+    else { renderSchemeTabs(); }
+  } catch { /* start fresh */ }
+  // Make sure default data exists
+  if (!localStorage.getItem(STORAGE_KEY)) saveData(DEFAULT_DATA);
+})();
+</script>
+</body>
+</html>
